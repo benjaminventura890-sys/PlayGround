@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#08140f">
+  <meta name="description" content="Dino Duo — a lightweight two-player dinosaur survival game. Level up, dodge the herd, and keep each other alive.">
+  <title>Dino Duo — Two-Player Dinosaur Survival</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="game" aria-label="Dino Duo game field"></canvas>
+    <div class="canvas-wash" aria-hidden="true"></div>
+
+    <!-- In-game HUD -->
+    <header id="hud" class="hud is-hidden" aria-label="Game status">
+      <div class="hud-top">
+        <section class="player-card p1" id="card0">
+          <div class="portrait"><span>1</span></div>
+          <div class="player-info">
+            <div class="name-line"><b id="name0">MOSS</b><em id="level0">LV 1</em></div>
+            <div class="meter hp"><i id="hp0"></i><span id="hpText0">100</span></div>
+            <div class="meter xp"><i id="xp0"></i></div>
+          </div>
+          <div class="dash-light" id="dash0" title="Dash ready"></div>
+        </section>
+
+        <div class="wave-block">
+          <div class="wave-pill"><span id="waveLabel">WAVE 1</span></div>
+          <div class="wave-sub" id="waveSub">The herd is coming</div>
+          <div class="mobile-score" id="mobileScore">SCORE 0</div>
+          <div class="boss-wrap is-hidden" id="bossWrap"><span>TITAN</span><div class="boss-bar"><i id="bossBar"></i></div></div>
+        </div>
+
+        <section class="player-card p2" id="card1">
+          <div class="dash-light" id="dash1" title="Dash ready"></div>
+          <div class="player-info">
+            <div class="name-line"><b id="name1">EMBER</b><em id="level1">LV 1</em></div>
+            <div class="meter hp"><i id="hp1"></i><span id="hpText1">100</span></div>
+            <div class="meter xp"><i id="xp1"></i></div>
+          </div>
+          <div class="portrait"><span>2</span></div>
+        </section>
+      </div>
+
+      <div class="hud-tools">
+        <button id="soundBtn" class="icon-btn" type="button" aria-label="Mute sound">
+          <span class="sound-on">♪</span><span class="sound-off">×</span>
+        </button>
+        <button id="pauseBtn" class="icon-btn" type="button" aria-label="Pause game">Ⅱ</button>
+      </div>
+
+      <div class="score-chip"><span>SCORE</span><b id="scoreLabel">0</b></div>
+      <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+      <div class="banner" id="banner" aria-live="polite">
+        <span class="banner-kicker" id="bannerKicker">WAVE 1</span>
+        <strong id="bannerTitle">The herd is hungry</strong>
+        <small id="bannerSmall">Keep moving. Keep each other alive.</small>
+      </div>
+      <div class="hint-bar" id="hintBar">
+        <span><kbd>WASD</kbd> move</span><span><kbd>SPACE</kbd> dash</span>
+        <span class="hint-sep">/</span>
+        <span><kbd>↑←↓→</kbd> move</span><span><kbd>ENTER</kbd> dash</span>
+        <span class="auto-tag">AUTO-FIRE</span>
+      </div>
+    </header>
+
+    <!-- Title / lobby -->
+    <section id="menu" class="overlay menu">
+      <div class="menu-glow" aria-hidden="true"></div>
+      <div class="menu-inner">
+        <div class="brand-lockup">
+          <div class="eyebrow"><i></i> LOCAL CO-OP · TWO RANGERS</div>
+          <h1 class="logo" aria-label="Dino Duo"><span>DINO</span><span>DUO</span></h1>
+          <p class="tagline">One tiny island. One hungry herd.<br><strong>Level up. Don’t split up.</strong></p>
+        </div>
+
+        <button id="startBtn" class="primary-btn" type="button" aria-label="Start Game">
+          <span>Start Game</span><i aria-hidden="true">›</i>
+        </button>
+        <p class="no-download">No installs · instant play · shared screen</p>
+
+        <div class="control-cards">
+          <article class="control-card moss">
+            <div class="ctrl-head"><span class="dot"></span><b>P1 · MOSS</b><em>WASD</em></div>
+            <div class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>move</span><kbd>SPACE</kbd><span>dash</span></div>
+          </article>
+          <article class="control-card ember">
+            <div class="ctrl-head"><span class="dot"></span><b>P2 · EMBER</b><em>ARROWS</em></div>
+            <div class="keys"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd><span>move</span><kbd>ENTER</kbd><span>dash</span></div>
+          </article>
+        </div>
+        <ul class="menu-notes">
+          <li><b>Auto-fire</b><span>Darts seek the nearest dino.</span></li>
+          <li><b>Level up</b><span>Earn boons. Evolve your darts.</span></li>
+          <li><b>Revive</b><span>Stand by a downed ranger.</span></li>
+        </ul>
+      </div>
+      <div class="menu-foot"><span>BEST SCORE <b id="bestScore">0</b></span><span>2 PLAYERS · 1 SCREEN</span></div>
+    </section>
+
+    <!-- Pause -->
+    <section id="pauseMenu" class="overlay pause is-hidden">
+      <div class="pause-panel">
+        <p class="eyebrow"><i></i> CAMPFIRE BREAK</p>
+        <h2>Paused</h2>
+        <p>The dinosaurs can wait. Probably.</p>
+        <button id="resumeBtn" class="primary-btn" type="button"><span>Resume</span><i>›</i></button>
+        <button id="quitBtn" class="ghost-btn" type="button">Back to title</button>
+      </div>
+    </section>
+
+    <!-- Game over -->
+    <section id="gameOver" class="overlay gameover is-hidden">
+      <div class="over-panel">
+        <p class="eyebrow"><i></i> THE ISLAND WINS</p>
+        <h2>Herd-ed<br><span>out.</span></h2>
+        <p class="over-copy" id="overCopy">You made a dent in the food chain.</p>
+        <div class="result-grid">
+          <div><span>WAVE</span><b id="resultWave">1</b></div>
+          <div><span>SCORE</span><b id="resultScore">0</b></div>
+          <div><span>MOSS LV</span><b id="resultLevel0">1</b></div>
+          <div><span>EMBER LV</span><b id="resultLevel1">1</b></div>
+        </div>
+        <button id="playAgainBtn" class="primary-btn" type="button"><span>Play Again</span><i>›</i></button>
+        <button id="titleBtn" class="ghost-btn" type="button">Back to title</button>
+      </div>
+    </section>
+
+    <!-- Touch controls -->
+    <div id="touchControls" class="touch-controls" aria-label="Touch controls">
+      <div class="touch-side left">
+        <div class="touch-tag moss">MOSS</div>
+        <div class="joystick" id="stick0" data-player="0" aria-label="Player one movement joystick">
+          <div class="joystick-ring"></div><div class="joystick-knob"></div>
+        </div>
+        <button class="dash-btn" data-player="0" type="button" aria-label="Player one dash">DASH</button>
+      </div>
+      <div class="touch-side right">
+        <div class="touch-tag ember">EMBER</div>
+        <button class="dash-btn" data-player="1" type="button" aria-label="Player two dash">DASH</button>
+        <div class="joystick" id="stick1" data-player="1" aria-label="Player two movement joystick">
+          <div class="joystick-ring"></div><div class="joystick-knob"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <noscript>This game needs JavaScript enabled. No dinosaurs were harmed in the making of this notice.</noscript>
+  <script src="js/core.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
